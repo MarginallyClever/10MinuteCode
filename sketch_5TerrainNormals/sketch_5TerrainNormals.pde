@@ -132,9 +132,7 @@ void draw() {
   lights();
   
   camera.update(dt);
-
   generateMap();
-  
   drawTerrain();
   drawWater();
 }
@@ -162,6 +160,7 @@ void drawWater() {
   endShape();
 }
 
+
 void drawTerrain() {
   noStroke();
   for(int y=0;y<mapSizeY-1;++y) {
@@ -174,6 +173,7 @@ void drawTerrain() {
   }
 }
 
+
 void mapPoint(int mapAddress) {
   PVector p = points[mapAddress];
   PVector n = normals[mapAddress];
@@ -185,13 +185,16 @@ void mapPoint(int mapAddress) {
          p.z*mapHeight-mapHeight/2);
 }
 
+
 int mapAddr(int x,int y) {
   return y * mapSizeX + x;
 }
 
+
 color wheel(float WheelPos) {
   return palette.getColor(WheelPos/255f); 
 }
+
 
 void setupMapPalette() {
   palette.addColor(0.00,color( 64, 64,255));
