@@ -1,3 +1,5 @@
+// an implementation of https://github.com/aschinchon/abstractions in Processing
+
 // an agent is a fungus, moving over a terrain.  it is affected by and changing the terrain, creating
 // mostly random generative patterns.
 class Agent {
@@ -86,11 +88,10 @@ void createMagneticField() {
 }
 
 void draw() {
-  background(0);
-  
-  steer();
+  walk();
   evaporation();
   
+  background(0);
   drawField();
   drawAgents();
 }
@@ -106,7 +107,7 @@ float sense(Agent a,float offset) {
 }
 
 
-void steer() {
+void walk() {
   for(Agent a : agents) {
     float front = sense(a,0);
     float left  = sense(a,frontLeft);
