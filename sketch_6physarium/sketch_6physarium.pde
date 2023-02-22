@@ -25,7 +25,7 @@ Palette palette = new Palette();
 PImage img;
 
 // how fast the magnetic field decays
-float decay = 0.01f;
+float decay = 0.005f;
 // how far each agent looks for magnetic field
 float sensorOffset = 6;
 float frontLeft = radians(22.5);
@@ -39,6 +39,10 @@ float depositionPerStep = 15;
 // how many agents, total?
 int numAgents = 1000;
 
+// mouse paintbrush tool
+boolean drawNow = false;
+boolean eraseNow = false;
+float drawRadius = 10;
 
 void setup() {
   size(800,600);
@@ -57,6 +61,11 @@ void setupPalette() {
 
 void createAgents() {
   agents = new Agent[numAgents];
+  //createAgentsInACircle();
+  createAgentsRandomlyDistributed();
+}
+
+void createAgentsInACircle() {
   float w = width / 20f;
   float h = height / 20f;
   float v = min(w,h);
@@ -69,10 +78,50 @@ void createAgents() {
   }
 }
 
+void createAgentsRandomlyDistributed() {
+  for(int i=0;i<numAgents;++i) {
+    float x = random(width);
+    float y = random(height);
+    float r2 = random(-PI,PI);
+    agents[i] = new Agent(x,y,r2);
+  }
+}
+
+
 void createMagneticField() {
   img = createImage(width, height, RGB);
-  // create a ring
   magneticField = new float[width*height];
+  
+  //createMagneticFieldRing();
+  //createMagneticFieldRectangle();
+}
+
+void createMagneticFieldRectangle() {
+  fillBox((int)(width*0.20),(int)(height*0.40),(int)(width*0.60),(int)(height*0.80),5);
+  fillBox((int)(width*0.25),(int)(height*0.45),(int)(width*0.50),(int)(height*0.70),0);
+}
+
+int bound(int v,int top, int bottom) {
+  v = max(v,bottom);
+  v = min(v,top);
+  return v;
+}
+
+void fillBox(int x0,int y0,int x1,int y1,float v) {
+  x0 = bound(x0,width,0);
+  x1 = bound(x1,width,0);
+  y0 = bound(y0,height,0);
+  y1 = bound(y1,height,0);
+  
+  for(int y=y0;y<y1;++y) {
+    for(int x=x0;x<x1;++x) {
+      magneticField[y*width+x] = v;
+    }
+  }
+}
+
+void createMagneticFieldRing() {
+  // create a ring
   int i=0;
   for(int y=0;y<height;++y) {
     for(int x=0;x<width;++x) {
@@ -94,7 +143,42 @@ void draw() {
   background(0);
   drawField();
   drawAgents();
+  
+  if(drawNow) {
+    fillBoxRadius(mouseX,mouseY,20,drawRadius);
+  }
+  if(eraseNow) {
+    fillBoxRadius(mouseX,mouseY,drawRadius,0);
+  }
 }
+
+void mousePressed() {
+  if(mouseButton == LEFT) drawNow=true;
+  if(mouseButton == RIGHT) eraseNow=true;
+}
+
+void mouseReleased() {
+  if(mouseButton == LEFT) drawNow=false;
+  if(mouseButton == RIGHT) eraseNow=false;
+}
+
+
+void mouseWheel(MouseEvent event) {
+  float e = event.getCount();
+  drawRadius += e;
+  drawRadius = max(drawRadius,0);
+  drawRadius = min(drawRadius,100);
+}
+
+
+void fillBoxRadius(float x,float y,float radius,float value) {
+  fillBox((int)(x-radius),
+          (int)(y-radius),
+          (int)(x+radius),
+          (int)(y+radius),
+          (int)(value));
+}
+
 
 float getAddress(float lim,float v) {
   return (v + lim) % lim;
@@ -114,15 +198,15 @@ void walk() {
     float right = sense(a,frontRight);
     
     if( front>left && front>right ) {
-      // nothing
+      // no turn
     } else if(front<left && front<right) {
-      a.h += (random(-1,1)>=0) ? turnPerStep : -turnPerStep;
+      a.h += ( (random(-1,1)>=0) ? turnPerStep : -turnPerStep );
     } else if(left < right) {
       a.h -= turnPerStep;
     } else if(left > right) {
       a.h += turnPerStep;
     } else {
-      // nothing
+      // no turn
     }
     
     // move
@@ -132,7 +216,10 @@ void walk() {
     // deposit sediment
     int x = (int)a.pos.x;
     int y = (int)a.pos.y;
-    magneticField[y*width+x] += depositionPerStep;
+    int i = y*width+x;
+    float v = magneticField[i] + depositionPerStep;
+    v = min(100,v);
+    magneticField[i] = v;
   }
 }
 
@@ -158,7 +245,7 @@ void drawField() {
   int i=0;
   for(int y=0;y<height;++y) {
     for(int x=0;x<width;++x) {
-      largest = max(largest,log10(magneticField[i++]));
+      largest = max( largest, log10(magneticField[i++]) );
     }
   }
   
@@ -166,7 +253,7 @@ void drawField() {
   img.loadPixels();
   for(int y=0;y<height;++y) {
     for(int x=0;x<width;++x) {
-      img.pixels[i] = palette.getColor((log10(magneticField[i]) / largest));
+      img.pixels[i] = palette.getColor( log10(magneticField[i]) / largest );
       i++;
     }
   }
