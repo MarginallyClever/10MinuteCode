@@ -1,8 +1,14 @@
-Sphere ball = new Sphere(200);
+UVSphere balla = new UVSphere(200);
+Icosphere ballb = new Icosphere(200);
+int state=0;
   
 void setup() {
   size(800,800,P3D);
   lights();
+}
+
+void mouseClicked() {
+  state=(state+1)%2;
 }
 
 void draw() {
@@ -12,7 +18,12 @@ void draw() {
   rotateY(mouseX*-0.01);
   
   float t = millis()*0.001;
-  ball.updateSun(new PVector(sin(t),0,cos(t)));
   
-  ball.draw();
+  if(state==0) {
+    balla.updateSun(new PVector(sin(t),0,cos(t)));
+    balla.draw();
+  } else {
+    ballb.updateSun(new PVector(sin(t),0,cos(t)));
+    ballb.draw();
+  }
 }

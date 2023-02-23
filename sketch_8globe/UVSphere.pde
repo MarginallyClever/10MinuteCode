@@ -1,6 +1,3 @@
-
-
-
 /**
  * draw a sphere with a given radius.
  * TODO expose quality parameters?
@@ -9,7 +6,7 @@
  * @param gl2
  * @param radius
  */
-class Sphere {
+class UVSphere {
   int width = 64;
   int height = 32;
   float radius;
@@ -17,7 +14,7 @@ class Sphere {
   EarthPoint [] vertices;
   int [] indexes;
   
-  public Sphere(int radius) {
+  public UVSphere(int radius) {
     this.radius = radius;
     
     int i, j, t;
@@ -67,6 +64,7 @@ class Sphere {
     if(indexes==null) return;
     if(vertices==null) return;
     
+    stroke(255,255,255);
     beginShape(TRIANGLES);
     for(int i=0;i<indexes.length;++i) {
       spherePoint(vertices[indexes[i]]);
@@ -77,7 +75,6 @@ class Sphere {
   private void spherePoint(EarthPoint earthPoint) {
     PVector p = earthPoint.p;
     normal(p.x,p.y,p.z);
-    stroke(1,1,1);
     fill(earthPoint.c);
     vertex(p.x*radius,
            p.y*radius,

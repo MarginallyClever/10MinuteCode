@@ -4,6 +4,10 @@ class EarthPoint {
   color c;
   
   public EarthPoint(float x,float y,float z) {
-    p = new PVector(x,y,z);
+    this.p = new PVector(x,y,z);
+  }
+  
+  public EarthPoint(PVector p) {
+    this.p = p;
   }
 }
