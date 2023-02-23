@@ -1,4 +1,7 @@
+import java.lang.Long;
+
 // see http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html
+// cannot refine to more than 65536 (2^16-1) points.
 class Icosphere {
   class TriangleIndices {
     int a,b,c;
@@ -25,9 +28,13 @@ class Icosphere {
     refine();
   }
   
+  private HashMap<Long,Integer> middlePointIndexCache = new HashMap<Long,Integer>();
   
   // split every triangle face into 4 new faces.
   public void refine() {
+    //if(points.size()>0x7fff) throw new Exception("cannot refine beyond "+0x7fff+" points.");
+    
+    middlePointIndexCache.clear();
     ArrayList<TriangleIndices> faces2 = new ArrayList<TriangleIndices>();
     for(TriangleIndices tri : faces) {
         // replace triangle by 4 triangles
@@ -50,12 +57,34 @@ class Icosphere {
    * @return the index of the new point.
    */
   private int getMiddlePoint(int a,int b) {
+    // see if point already exists
+    int first,second;
+    if(a<b) {
+      first = a;
+      second = b;
+    } else {
+      first = b;
+      second = a;
+    }
+    Long k = Long.valueOf(((long)first << 16) + (long)second);
+    if(middlePointIndexCache.containsKey(k)) {
+      return middlePointIndexCache.get(k);
+    }
+    
+    // add the new point
     PVector pa = points.get(a).p;
     PVector pb = points.get(b).p;
     PVector c = PVector.mult(PVector.add(pa,pb),0.5f);
     c.normalize();
     points.add(new EarthPoint(c));
-    return points.size()-1;
+    
+    int i=points.size()-1;
+    
+    // put the new point in the cache
+    middlePointIndexCache.put(k,i);
+    
+    // return the index
+    return i;
   }
   
   
