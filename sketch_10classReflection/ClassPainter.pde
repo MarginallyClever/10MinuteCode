@@ -2,8 +2,8 @@ class ClassPainter {
   private Rectangle2D.Float size = new Rectangle2D.Float();
   private boolean onlyCalculateSize;
   private int myTextHeight=11;
-  private int myTextWidth=9;
-  private int myLineSpacing=2;
+  private int myTextWidth=8;
+  private int myTextLeading = myTextHeight+2;
   private int cursorX,cursorY;
   
   public ClassPainter() {
@@ -22,27 +22,35 @@ class ClassPainter {
     onlyCalculateSize = true;
     drawEverything(subject);
     
+    drawBorder();
+    
     onlyCalculateSize = false;
     drawEverything(subject);
-    
-    drawBorder();
   }
   
   private void drawEverything(Class<?> subject) {
     cursorX = 0;
-    cursorY = myTextHeight+myLineSpacing;
+    cursorY = 0;
+    drawNL();
     
     drawClassBasics(subject);
     drawInterfaces(subject);
     drawFields(subject);
     drawConstructors(subject);
     drawMethods(subject);
+    size.height+=myTextLeading/2;
   }
   
   private void drawBorder() {
+    fill(64,64,64);
+    rect(size.x,size.y,size.width,size.height,5,5,5,5);
+    
+    fill(255,255,255);
+    rect(size.x,size.y,size.width,myTextLeading+2,5,5,0,0);
+    
     stroke(255,255,255);
     noFill();
-    rect(size.x,size.y,size.width,size.height);
+    rect(size.x,size.y,size.width,size.height,5,5,5,5);
   }
   
   
@@ -53,26 +61,24 @@ class ClassPainter {
       }
       cursorX += myTextWidth;
     }
-    cursorY += myTextHeight+myLineSpacing;
     size.add(cursorX,cursorY);
   }
   
   private void drawNL() {
-    cursorX=0;
+    cursorY += myTextLeading;
+    cursorX = myTextWidth/2;
   }
   
   private void drawClassBasics(Class<?> subject) {
     Class<?> sup = subject.getSuperclass();
-    String supName = (sup==null)? "" : " extends "+subject.getSuperclass().getName();
+    String supName = (sup==null)? "" : " extends "+subject.getSuperclass().getSimpleName();
     
-    fill(255,255,255);
-    stroke(0,0,0);
-    rect(size.x,size.y,size.width,myTextHeight+2);
-    
-    fill(255,255,255);
-    drawText(getModifiersAsString(subject.getModifiers()) 
-      + subject.getName() 
-      + supName);
+    fill(0,128,0);
+    drawText(getModifiersAsString(subject.getModifiers()));
+    fill(0,0,0);
+    drawText(subject.getSimpleName());
+    fill(255,0,0);
+    drawText(supName);
     drawNL();
   }
   
@@ -85,7 +91,7 @@ class ClassPainter {
       add=", ";
     }
     if(!str.isEmpty()) {
-      fill(255,128,0);
+      fill(255,0,128);
       drawText(str);
       drawNL();
     }
@@ -95,7 +101,10 @@ class ClassPainter {
   private void drawFields(Class<?> subject) {
     fill(128,128,255);
     for(Field field : subject.getFields()) {
-      drawText(getModifiersAsString(field.getModifiers()) + field.getName());
+      fill(0,128,0);
+      drawText(getModifiersAsString(field.getModifiers()));
+      fill(0,0,0);
+      drawText(field.getName());
       //drawText("  value="+field.get(instance));
       drawNL();
     }
@@ -112,8 +121,16 @@ class ClassPainter {
         retName = ret.getSimpleName();
       }
       fill(128,255,128);
-      drawText(getModifiersAsString(method.getModifiers())+retName + " " + method.getName()+"("+getParametersAsString(method)+")");
-      //drawParameters(method);
+      drawText(getModifiersAsString(method.getModifiers()));
+      fill(0,0,128);
+      drawText(retName + " ");
+      fill(255,255,0);
+      drawText(method.getName());
+      fill(0,0,0);
+      drawText("(");
+      drawParameters(method);
+      fill(0,0,0);
+      drawText(")");
       drawNL();
     }
   }
@@ -122,13 +139,19 @@ class ClassPainter {
   private void drawConstructors(Class<?> subject) {
     fill(255,128,128);
     for(Constructor method : subject.getDeclaredConstructors()) {
-      drawText(getModifiersAsString(method.getModifiers())+method.getName()+"("+getParametersAsString(method)+")");
-      //drawParameters(constructor);
+      fill(128,255,128);
+      drawText(getModifiersAsString(method.getModifiers()));
+      fill(255,128,0);
+      drawText(method.getName());
+      fill(0,0,0);
+      drawText("(");
+      drawParameters(method);
+      fill(0,0,0);
+      drawText(")");
       drawNL();
     }
   }
-  
-  
+    
   private String getModifiersAsString(int modifiers) {
     String str = Modifier.toString(modifiers); 
     if(!str.isEmpty()) str+=" ";
@@ -150,14 +173,20 @@ class ClassPainter {
   
   
   private void drawParameters(java.lang.reflect.Executable subject) {
-    //drawText("    parameters="+subject.getParameterCount());
-    int i=0;
+    String add = "";
     for(Parameter parameter : subject.getParameters()) {
-      drawText("    parameter "+i+"="+(parameter.getType().getSimpleName())+" "+parameter.getName());
-      if(parameter.getModifiers()!=0) {
-        drawText("      modifier="+Modifier.toString(parameter.getModifiers()));
-      }
-      i++;
+      String retName = parameter.getType().getSimpleName()+" ";
+      String mods = getModifiersAsString(parameter.getModifiers());
+    
+      fill(0,0,0);
+      drawText(add);
+      add=", ";
+      fill(128,255,128);
+      drawText(mods);
+      fill(0,0,128);
+      drawText(retName);
+      fill(0,255,255);
+      drawText(parameter.getName());
     }
   }
   
