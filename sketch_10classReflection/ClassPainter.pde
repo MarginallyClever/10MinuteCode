@@ -1,7 +1,7 @@
 class ClassPainter {
   private Rectangle2D.Float size = new Rectangle2D.Float();
   private boolean onlyCalculateSize;
-  private int myTextHeight=11;
+  private int myTextHeight=12;
   private int myTextWidth=8;
   private int myTextLeading = myTextHeight+2;
   private int cursorX,cursorY;
@@ -15,7 +15,7 @@ class ClassPainter {
     Class<?> subject = tryToGetClass(name);
     if(subject==null) return;
     
-    textFont(createFont("Arial",myTextHeight,true));
+    textFont(createFont("Courier",myTextHeight,true));
     
     size = new Rectangle2D.Float();
     
@@ -72,6 +72,7 @@ class ClassPainter {
   private void drawClassBasics(Class<?> subject) {
     Class<?> sup = subject.getSuperclass();
     String supName = (sup==null)? "" : " extends "+subject.getSuperclass().getSimpleName();
+    cursorY-=2;
     
     fill(0,128,0);
     drawText(getModifiersAsString(subject.getModifiers()));
@@ -80,6 +81,7 @@ class ClassPainter {
     fill(255,0,0);
     drawText(supName);
     drawNL();
+    
   }
   
   
