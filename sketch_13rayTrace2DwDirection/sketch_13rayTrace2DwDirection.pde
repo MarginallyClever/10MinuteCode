@@ -46,6 +46,12 @@ PGraphics filterLive;
 PGraphics filterHistorical;
 PGraphics filterHistorical2;
 
+PVector previous = new PVector();
+PVector facing = new PVector();
+float fov = 60;
+float coneSize=30;
+float dragLength=15;
+
 
 void setup() {
   size(800,800);
@@ -76,17 +82,43 @@ void draw() {
   background(0);
   //image(background,0,0);
   moveShape();
-  drawAndTraceAllShapes();
-}
-
-void drawAndTraceAllShapes() {
   rayTrace();
   updateLiveFilter();
   addLiveFilterToHistory();
   drawMapRememberedInGray();
   drawMapInSight();
   drawStartedShape();
+  drawPlayer();
 }
+
+
+void mouseMoved() {
+  PVector m = new PVector(mouseX,mouseY);
+  PVector diff = PVector.sub(m,previous);
+  float len = diff.mag();
+  if(len>dragLength) {
+    facing.set(diff);
+    facing.normalize();
+    previous.add(PVector.mult(facing,len-dragLength));
+  }
+}
+
+
+void drawPlayer() {
+  float r = radians(fov/2);
+  PVector forward = PVector.mult(facing,coneSize);
+  PVector ortho = PVector.mult(new PVector(-forward.y,forward.x),sin(r));
+  
+  
+  stroke(255,255,255);
+  line(mouseX,mouseY,
+      mouseX+forward.x+ortho.x,
+      mouseY+forward.y+ortho.y);
+  line(mouseX,mouseY,
+      mouseX+forward.x-ortho.x,
+      mouseY+forward.y-ortho.y);
+}
+
 
 void addLiveFilterToHistory() {
   filterHistorical.beginDraw();
@@ -121,7 +153,10 @@ void rayTrace() {
   
   ray.hitList.clear();
   
-  for(int i=0;i<360;++i) {
+  float headingAngle = degrees(atan2(facing.y,facing.x));
+  float start = 360 + headingAngle-fov/2;
+  float end   = 360 + headingAngle+fov/2;
+  for(float i=start;i<end;++i) {
     float r = radians(i);
     ray.dir.set(cos(r),sin(r));
     ray.from.set(mouseX,mouseY);
